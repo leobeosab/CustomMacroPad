@@ -26,17 +26,20 @@ baseLength = switchesLength + offsetLength;
 
 // Plate
 plateHeight = 1.5;
-plateWidth = baseWidth;
-plateLength = baseLength;
-plateOffsetFromBase = 10;
+plateWidth = baseWidth - 0.4;
+plateLength = baseLength - 0.4;
+plateOffsetFromBase = 15;
+plateCenterHoleWidth = 6;
 
 // Plate Supports
-supportWidth = 5;
-supportLength = 5;
+supportWidth = 8;
+supportLength = 8;
+supportMagWidth = 6.2;
+supportMagHeight = 2.5;
 
 // Cable Hole
-cableHoleWidth = 8;
-cableHoleHeight = 3.5;
+cableHoleWidth = 11.5;
+cableHoleHeight = 6.5;
 
 module switchBase() {
     translate([switchSkirtOffset / 2, switchSkirtOffset / 2, 0])
@@ -108,19 +111,36 @@ module macroBase() {
     }
 }
 
-module switchPlate() {
+module switchPlate(offsetPlate) {
+    
+    zOff = 0;
+    if (offsetPlate) {
+        zOff = plateOffsetFromBase + baseThickness;
+    }
+    
     difference() {
-        translate([0,0, plateOffsetFromBase + baseThickness])
+        translate([0,0, zOff])
         color("pink")
         cube([plateWidth, plateLength, plateHeight]);
         
-        translate([0,0, plateOffsetFromBase + baseThickness])
-        switches();
+        union() {
+            translate([0,0, zOff])
+            switches();
+            
+            translate([plateWidth/2, plateLength/2, 0])
+            cylinder(plateHeight, plateCenterHoleWidth/2, plateCenterHoleWidth/2);
+        }
+
     }
 }
 
 module support() {
-    cube([supportWidth, supportLength, plateOffsetFromBase]);
+    difference() {
+        cube([supportWidth, supportLength, plateOffsetFromBase]);
+        translate([supportWidth / 2, supportWidth / 2,plateOffsetFromBase-supportMagHeight])
+        cylinder(supportMagHeight, supportMagWidth/2, supportMagWidth/2, false);
+
+    }
 }
 
 module plateSupports() {
@@ -150,12 +170,16 @@ module cableHole() {
         cube([cableHoleWidth, baseThickness, cableHoleHeight], true);
 }
 
-difference() {
-    macroBase();
-    //cableHole();
+module macroCase() {
+    difference() {
+        macroBase();
+        cableHole();
+    }
+    
+    plateSupports();
 }
 
+macroCase();
 
-plateSupports();
-switchPlate();
-renderSwitches();
+// switchPlate();
+//renderSwitches();
